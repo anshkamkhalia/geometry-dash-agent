@@ -34,7 +34,7 @@ class GeometryDashAgent(Model):
 
         # model architecture
 
-        # conv layers
+        # conv layers -> TimeDistributed to add timestep dimension
         self.conv1 = Conv2D(
             filters=32, 
             kernel_size=(3,3), 
@@ -87,16 +87,26 @@ class GeometryDashAgent(Model):
         self.dense1 = Dense(64, activation="relu", kernel_regularizer=l2(1e-4))
         self.dense2 = Dense(128, activation="relu", kernel_regularizer=l2(1e-4))
 
-        self.out = Dense(3, activation="softmax") # 3 classes -> wait, jump, hold_jump
+        self.out = Dense(4, activation="softmax") # 3 classes -> wait, jump, hold, release
 
     def call(self, x):
-        x = self.conv1(x)
-        x = self.conv2(x)
-        x = self.ln(x)
-        x = self.td_gap2d(x)
-        x = self.attention(x)
-        x = self.gru1(x)
-        x = self.gru2(x)
+
+        x = TimeDistributed(self.conv1)(x)   
+        x = TimeDistributed(self.conv2)(x)
+        x = TimeDistributed(self.ln)(x)     
+
+        x = self.td_gap2d(x)      
+
+        x = self.gru1(x)               
+        x = self.gru2(x)               
+
+        x = tf.expand_dims(x, axis=1)  
+        x = self.attention(x)          
+
         x = self.dropout(x)
         x = self.dense1(x)
         x = self.dense2(x)
+
+        x = self.out(x)     
+
+        return x

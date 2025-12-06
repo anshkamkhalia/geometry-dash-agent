@@ -4,7 +4,7 @@ import mss # for screenshots
 import numpy as np # for arrays
 import cv2 as cv  # process data
 
-def capture_screen(sct, monitor, target_height=200):
+def capture_screen(sct, monitor, target_height=300):
 
     """captures a screenshot of the gameplay and processes it"""
 
@@ -17,6 +17,7 @@ def capture_screen(sct, monitor, target_height=200):
     aspect_ratio = width / height
     new_width = int(target_height * aspect_ratio)
 
-    img = cv.resize((new_width, target_height), img) # resize image
+    img = cv.resize(img, (new_width, target_height)) # resize image
+    img = img / 255.0 # normalize pixels
 
     return img
